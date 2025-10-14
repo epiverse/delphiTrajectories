@@ -1,8 +1,13 @@
+<!DOCTYPE html>
 <html>
     <head>
         <link href="delphiTrajectories.css" rel="stylesheet">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <!--<script src="index.js"></script>-->
+
+        <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.16.3/dist/ort.min.js"></script>
+
+        <script src="https://cdn.jsdelivr.net/gh/episphere/delphi-onnx@main/delphiSDK.js"></script>
+        <script src="delphiTrajectories.js"></script>
     </head>
     <body>
         <hr>
@@ -16,8 +21,34 @@
         </h1>
         <hr>
         <p>Using the <a href="https://www.nature.com/articles/s41586-025-09529-3" target="_blank">Delphi 2M model</a> in-browser for privacy preserving estimation of morbidity risk for individual health trajectories.This is primarily an exploratory exercise in engineering real-time privacy-preserving Web applications backed by generative transformers.</p>
-        <p> Live prototype under development at (this page): <a href="https://epiverse.github.io/delphiTrajectories" target="_blank">epiverse.github.io/delphiTrajectories</a>.</p> 
+        <p> Live prototype under development at (this page): <a href="https://epiverse.github.io/delphiTrajectories" target="_blank">epiverse.github.io/delphiTrajectories</a>.</p>
         <hr>
-        <div id="cliDiv">... under dev ... </div>
-    </body>
+        <div id="delphi-input-box">
+            <h3>Delphi-2M Single-Input Trajectory</h3>
+
+            <label for="current-age">Current Age:</label>
+            <input type="number" id="current-age" value="50" min="1" max="100">
+            <hr>
+
+            <h4>Patient Health History</h4>
+            <div id="events-container">
+                <div class="event-input-group">
+                    <label for="age-0">Event Age:</label>
+                    <input type="number" class="event-age" id="age-0" value="45" min="1" max="100">
+
+                    <label for="code-0">Disease Event:</label>
+                    <input type="text" class="event-code" id="code-0" value="I10" placeholder="e.g., I10" style="display:none;">
+                </div>
+            </div>
+
+            <hr>
+            <button onclick="runDelphiPrediction()" disabled>Get Prediction</button>
+            <button onclick="addEventInput()" disabled>Add another event</button>
+
+            <div id="delphi-output">
+                <p>Predicted Next Event:</p>
+                <pre id="prediction-result">Loading model and disease labels... Please wait.</pre>
+            </div>
+        </div>
+        </body>
 </html>
