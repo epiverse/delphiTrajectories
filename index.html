@@ -77,6 +77,7 @@
             <sup class="text-sm font-normal text-gray-500 ml-2">
                 [<a href="https://github.com/epiverse/delphiTrajectories" target="_blank" class="hover:text-blue-500">code</a>]
                 [<a href="https://github.com/epiverse/delphiTrajectories/wiki" target="_blank" class="hover:text-blue-500">help</a>]
+                [<a href="https://observablehq.com/@prafulb/delphi-2m-in-the-browser" target="_blank" class="hover:text-blue-500">notebook</a>]
             </sup>
         </h1>
         <p class="mt-2 text-gray-600">Using the Delphi 2M model in-browser for privacy-preserving estimation of morbidity risk.</p>
@@ -135,7 +136,7 @@
     let allLabels = [];
     let isInitialized = false;
 
-    // --- HELPER FUNCTIONS & DELPHIONNX CLASS (Minimally changed) ---
+    // --- HELPER FUNCTIONS & DELPHIONNX CLASS (Unchanged from previous response) ---
 
     function mulberry32RNG(seed) {
         let t = seed + 0x6D2B79F5;
@@ -219,7 +220,6 @@
         }
 
         async getLogits(eventTokens, ages, logitsIndex) {
-            // ... (getLogits remains the same as previous correction)
             if (!this.session) { await this.initialize() }
             if (!logitsIndex || !Number.isInteger(logitsIndex)) { logitsIndex = eventTokens.length - 1 }
 
@@ -266,7 +266,7 @@
                 maxNewTokens = 100,
                 maxAge = 85 * NUM_DAYS_IN_A_YEAR,
                 noRepeat = true,
-                terminationTokens = [1269], // End-of-life token
+                terminationTokens = [1269],
                 ignoreTokens = []
             } = options
 
@@ -298,7 +298,6 @@
                 }
 
                 const tSamples = logits.map(logit => {
-                    // Generate time-to-event from logits (using Gumbel-Max trick)
                     const randomSample = -Math.exp(-logit) * Math.log(this.rng())
                     return Math.max(0, randomSample)
                 })
@@ -306,14 +305,12 @@
                 let minTime = Infinity
                 let minIndex = -1
                 tSamples.forEach((tSample, i) => {
-                    // Don't predict mask token (0) or age token (1)
                     if (i > 1 && tSample < minTime) {
                         minTime = tSample;
                         minIndex = i;
                     }
                 })
 
-                // If no valid event was found (e.g., all were ignored/repeated), stop
                 if (minIndex === -1) {
                     break;
                 }
@@ -329,21 +326,16 @@
                 }
             }
 
-            // Note: The original code's post-processing of logits and token/age arrays for masking
-            // is complex and potentially buggy/unnecessary for a simple display, so we will return
-            // the core generated sequence.
-
             return {
                 tokenIds: currentIdx,
                 age: currentAge,
-                // Logits array omitted for simplicity unless required
             }
         }
     }
     // --- END DELPHIONNX CLASS DEFINITION ---
 
 
-    // --- APPLICATION LOGIC FUNCTIONS (Modified for full trajectory) ---
+    // --- APPLICATION LOGIC FUNCTIONS (Unchanged from previous response) ---
 
     function createDiseaseDropdown(selectedIcd) {
         const select = document.createElement('select');
@@ -447,10 +439,7 @@
         try {
             const startToken = delphiModel.ageTokenName;
 
-            // Tokens: [start_token, event1, event2, ..., eventN]
             tokenHistory = delphiModel.getTokensFromEvents([startToken, ...icdEvents]);
-
-            // Ages: [0, age1, age2, ..., ageN]
             ageHistoryDays = delphiModel.convertAgeToDays([0, ...eventAges]);
 
         } catch (e) {
@@ -470,7 +459,7 @@
             const inputLength = tokenHistory.length;
             const predictedTokens = prediction.tokenIds;
             const predictedAgesDays = prediction.age;
-            const terminationTokenId = 1269; // Assuming the end-of-life token
+            const terminationTokenId = 1269;
 
             let html = `
                 <span class="font-bold text-lg text-blue-700">Predicted Trajectory up to ${delphiModel.convertAgeToYears(predictedAgesDays[predictedAgesDays.length - 1], 0)} Years Old:</span>
@@ -493,7 +482,7 @@
                 const ageYears = delphiModel.convertAgeToYears(ageDays, 1);
                 const eventName = delphiModel.getEventsFromTokens(token);
 
-                if (token === 0) continue; // Skip mask tokens
+                if (token === 0) continue;
 
                 const parts = eventName ? eventName.split(' ') : ['N/A', 'N/A'];
                 const icdCode = parts[0];
@@ -557,7 +546,6 @@
 
             isInitialized = true;
 
-            // Replace the placeholder with the dropdown for the initial event
             const initialGroup = document.querySelector('.event-input-group');
             const codeInput = initialGroup.querySelector('.event-code');
             const placeholderSpan = initialGroup.querySelector('#code-placeholder-0');
