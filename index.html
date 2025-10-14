@@ -460,7 +460,6 @@
             const terminationTokenId = 1269;
 
             let html = `
-                <span class="font-bold text-lg text-blue-700">Prediction starts at age ${currentAge} and continues up to ${delphiModel.convertAgeToYears(predictedAgesDays[predictedAgesDays.length - 1], 0)} Years Old:</span>
                 <table class="trajectory-table">
                     <thead>
                         <tr>
@@ -499,12 +498,6 @@
                     break;
                 }
             }
-
-            html += `
-                    </tbody>
-                </table>
-                <p class="mt-4 text-sm text-gray-600">The prediction starts after the last known event (age ${currentAge}). The sequence is simulated for the next ${PREDICTION_WINDOW_YEARS} years or until end-of-life is predicted.</p>
-            `;
 
             if (stepCounter === 1) {
                  resultElement.textContent = `No new events were predicted up to the maximum simulation age (${delphiModel.convertAgeToYears(prediction.age[prediction.age.length - 1], 0)} years).`;
