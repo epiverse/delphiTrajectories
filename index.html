@@ -6,7 +6,6 @@
     <title>Delphi 2M Trajectory Predictor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Custom styles for better readability and structure */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f7f9fb;
@@ -126,6 +125,7 @@
     const MODEL_URL = 'https://episphere.github.io/delphi-onnx/delphi.onnx';
     const LABELS_URL = 'https://raw.githubusercontent.com/episphere/delphi-onnx/main/delphi_labels_chapters_colours_icd.json';
     const NUM_DAYS_IN_A_YEAR = 365.25;
+    const PREDICTION_WINDOW_YEARS = 30; // How many years past the last recorded event to predict
 
     let delphiModel = null;
     let allLabels = [];
@@ -391,14 +391,9 @@
 
         resultElement.innerHTML = `<p class="text-blue-600">Calculating full trajectory... Please wait.</p>`;
 
-        const currentAge = parseInt(document.getElementById('current-age').value);
-        if (isNaN(currentAge) || currentAge < 1) {
-            resultElement.textContent = 'Error: Please enter a valid Current Age (>= 1).';
-            return;
-        }
-
         const events = [];
         const eventGroups = document.querySelectorAll('.event-input-group');
+        let maxAge = 0;
 
         eventGroups.forEach(group => {
             const ageInput = group.querySelector('.event-age');
@@ -407,7 +402,8 @@
             const eventAge = parseInt(ageInput.value);
             const icdCode = codeSelect ? codeSelect.value : '';
 
-            if (isNaN(eventAge) || eventAge < 1 || eventAge > currentAge || !icdCode) {
+            // Validation: Must be a valid age >= 1 and a selected ICD code
+            if (isNaN(eventAge) || eventAge < 1 || !icdCode) {
                  return;
             }
 
@@ -416,15 +412,22 @@
 
             if (fullEventName) {
                 events.push({ age: eventAge, eventName: fullEventName });
+                if (eventAge > maxAge) {
+                    maxAge = eventAge;
+                }
             }
         });
 
         events.sort((a, b) => a.age - b.age);
 
         if (events.length === 0) {
-             resultElement.textContent = 'Please add at least one valid past health event with a corresponding age (<= Current Age).';
+             resultElement.textContent = 'Error: Please add at least one valid past health event.';
              return;
         }
+
+        // The current age (starting point for prediction) is the maximum recorded event age
+        const currentAge = maxAge;
+
 
         const icdEvents = events.map(e => e.eventName);
         const eventAges = events.map(e => e.age);
@@ -445,9 +448,9 @@
 
 
         try {
-            // C. Run Trajectory Generation (This simulates future events up to maxAge)
+            // C. Run Trajectory Generation: Predict up to (Current Age + PREDICTION_WINDOW_YEARS)
             const prediction = await delphiModel.generateTrajectory(tokenHistory, ageHistoryDays, {
-                maxAge: currentAge * NUM_DAYS_IN_A_YEAR + (30 * NUM_DAYS_IN_A_YEAR) // Example: Predict up to 30 years past current age
+                maxAge: currentAge * NUM_DAYS_IN_A_YEAR + (PREDICTION_WINDOW_YEARS * NUM_DAYS_IN_A_YEAR)
             });
 
             // D. Process Output for Trajectory
@@ -457,7 +460,7 @@
             const terminationTokenId = 1269;
 
             let html = `
-                <span class="font-bold text-lg text-blue-700">Predicted Trajectory up to ${delphiModel.convertAgeToYears(predictedAgesDays[predictedAgesDays.length - 1], 0)} Years Old:</span>
+                <span class="font-bold text-lg text-blue-700">Prediction starts at age ${currentAge} and continues up to ${delphiModel.convertAgeToYears(predictedAgesDays[predictedAgesDays.length - 1], 0)} Years Old:</span>
                 <table class="trajectory-table">
                     <thead>
                         <tr>
@@ -500,7 +503,7 @@
             html += `
                     </tbody>
                 </table>
-                <p class="mt-4 text-sm text-gray-600">The prediction starts after the last known event. The sequence is simulated up to a predefined maximum age.</p>
+                <p class="mt-4 text-sm text-gray-600">The prediction starts after the last known event (age ${currentAge}). The sequence is simulated for the next ${PREDICTION_WINDOW_YEARS} years or until end-of-life is predicted.</p>
             `;
 
             if (stepCounter === 1) {
@@ -525,7 +528,9 @@
         resultElement.textContent = 'Loading model and disease labels... This may take a moment.';
 
         try {
+            // Use fixed seed for reproducible results
             delphiModel = new DelphiONNX({ modelURL: MODEL_URL, seed: 42 });
+
             await delphiModel.initialize();
 
             allLabels = Object.values(delphiModel.tokenIdToName)
