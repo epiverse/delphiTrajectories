@@ -76,7 +76,7 @@
             <sup class="text-sm font-normal text-gray-500 ml-2">
                 [<a href="https://github.com/epiverse/delphiTrajectories" target="_blank" class="hover:text-blue-500">code</a>]
                 [<a href="https://github.com/epiverse/delphiTrajectories/wiki" target="_blank" class="hover:text-blue-500">help</a>]
-                [<a href="https://observablehq.com/@prafulb/delphi-2m-in-the-browser" target="_blank" class="hover:text-blue-500">notebook</a>]
+                [<a href="https://observablehq.com/@prafulb/delphi-2m-js-sdk" target="_blank" class="hover:text-blue-500">notebook</a>]
             </sup>
         </h1>
         <p class="mt-2 text-gray-600">Using the Delphi 2M model in-browser for privacy-preserving estimation of morbidity risk.</p>
@@ -347,7 +347,7 @@
 
             const option = document.createElement('option');
             option.value = item.name.split(' ')[0];
-            option.textContent = item['ICD-10 Chapter (short)'] + ' | ' + item.name;
+            option.textContent = item.name;
 
             if (option.value === selectedIcd) {
                 option.selected = true;
