@@ -85,5 +85,5 @@ async function generatedTrajectory(eventsList=eventsList_start,seed=42){ // note
 export{generatedTrajectory}
 
 // NOTES
-// trj = await (await import('epiverse.github.io/delphiTrajectories/funDelphi.mjs')).generatedTrajectory()
-// trj = await (await import('http://localhost:8000/delphiTrajectories/funDelphi.mjs')).generatedTrajectory()
+// Generating a trajectory, trj, using the default parameters
+// trj = await (await import('https://epiverse.github.io/delphiTrajectories/funDelphi.mjs')).generatedTrajectory()
