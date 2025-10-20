@@ -1,6 +1,5 @@
 import { DelphiONNX } from "https://episphere.github.io/delphi-onnx/delphiSDK.js"
 
-// --- DELPHI EXECUTION WRAPPER ---
 async function runDelphiPrediction() {
 
     try {
