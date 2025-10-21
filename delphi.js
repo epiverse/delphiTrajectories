@@ -215,7 +215,7 @@ class DelphiONNX {
 
 // --- APPLICATION LOGIC FUNCTIONS ---
 
-function createDiseaseDropdown(selectedIcd) {
+window.createDiseaseDropdown = function(selectedIcd) {
     const select = document.createElement('select');
     select.className = 'event-code-select';
     select.required = true;
@@ -232,7 +232,7 @@ function createDiseaseDropdown(selectedIcd) {
         option.value = item.name.split(' ')[0];
         option.textContent = item.name;
 
-        if (option.value === selectedIcd) {
+        if (option.value === selectedIcd || item.name.includes(selectedIcd)) {
             option.selected = true;
         }
         select.appendChild(option);
@@ -262,7 +262,22 @@ window.addEventInput = function () {
     eventsContainer.appendChild(newGroup);
 
     const placeholder = newGroup.querySelector(`#code-placeholder-${index}`);
-    placeholder.replaceWith(createDiseaseDropdown(''));
+    const dropdown = window.createDiseaseDropdown('');
+    if (dropdown) {
+        try {
+            placeholder.replaceWith(dropdown);
+        } catch (e) {
+            // fallback: append after the last label
+            const ageInput = newGroup.querySelector('.event-age');
+            if (ageInput) {
+                ageInput.insertAdjacentElement('afterend', dropdown);
+            } else {
+                newGroup.appendChild(dropdown);
+            }
+        }
+    } else {
+        console.warn('addEventInput: createDiseaseDropdown returned no element');
+    }
 }
 
 window.runDelphiPrediction = async function () {

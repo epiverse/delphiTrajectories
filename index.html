@@ -83,15 +83,15 @@
     </header>
 
     <div id="delphi-input-box">
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">Patient Input</h3>
+        <h3 class="text-xl font-semibold text-gray-800 mb-4"></h3>
 
         <h4 class="text-lg font-medium text-gray-700 mb-3">Patient Health History</h4>
         <div id="events-container" class="space-y-3">
             <div class="event-input-group bg-gray-50 rounded-lg p-3 shadow-sm" data-is-removable="false">
                 <label for="age-0" class="font-medium text-gray-600">Event Age:</label>
-                <input type="number" class="event-age w-1/4" id="age-0" value="45" min="1" max="100">
+                <input type="number" class="event-age w-1/4" id="age-0" value="eventsList_start" min="1" max="100">
                 <label for="code-0" class="font-medium text-gray-600">Disease Event:</label>
-                <input type="text" class="event-code" id="code-0" value="I10" placeholder="e.g., I10" style="display:none;">
+                <input type="text" class="event-code" id="code-0" value="eventsList_start" placeholder="e.g., I10" style="display:none;">
                 <span id="code-placeholder-0"></span>
             </div>
         </div>
@@ -114,7 +114,7 @@
     </div>
 </div>
 
-<script type="module" src="./delphi.js"></script>
+<script type="module" src="./index.js"></script>
 
 </body>
 </html>
