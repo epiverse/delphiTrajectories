@@ -39,8 +39,9 @@ window.createDiseaseDropdown = function(selectedEvent) {
     select.appendChild(defaultOption);
 
     // Prefer SDK vocabulary if available, but also include non-ICD events from the local rawEventsList
+    // Exclude sex tokens from disease dropdown (they are handled separately in the UI)
     let optionsSource = [];
-    const localEvents = rawEventsList.map(e => e.event).filter(ev => ev && ev !== 'Male');
+    const localEvents = rawEventsList.map(e => e.event).filter(ev => ev && ev !== 'Male' && ev !== 'Female');
 
     if (sdk && sdk.tokenIdToName) {
         // SDK labels (ICD-like tokens) first
@@ -86,13 +87,15 @@ async function initializeForm() {
         }
     }
 
-    // Populate events-container with all events from rawEventsList (skip "Male")
+    // Populate events-container with all events from rawEventsList (include sex events)
     const eventsContainer = document.getElementById('events-container');
     if (eventsContainer) {
         eventsContainer.innerHTML = '';
         let idx = 0;
         rawEventsList.forEach(event => {
-            if (!event || event.event === 'Male') return; // skip Male
+            if (!event) return;
+
+            const isSex = event.event === 'Male' || event.event === 'Female';
 
             // create group
             const newGroup = document.createElement('div');
@@ -101,22 +104,53 @@ async function initializeForm() {
             newGroup.innerHTML = `
                 <label for="age-${idx}" class="font-medium text-gray-600">Event Age:</label>
                 <input type="number" class="event-age w-1/4" id="age-${idx}" value="${event.age}" min="0" max="120">
-                <label for="code-${idx}" class="font-medium text-gray-600">Disease Event:</label>
-                <span id="code-placeholder-${idx}"></span>
+                ${isSex ? `<label for="sex-${idx}" class="font-medium text-gray-600">Sex:</label><span id="sex-placeholder-${idx}"></span>` : `<label for="code-${idx}" class="font-medium text-gray-600">Disease Event:</label><span id="code-placeholder-${idx}"></span>`}
                 ${idx > 0 ? '<button type="button" onclick="this.closest(\'.event-input-group\').remove()" class="remove-btn text-sm text-red-600 hover:text-red-800 transition duration-150">Remove</button>' : ''}
             `;
 
             eventsContainer.appendChild(newGroup);
 
-            const placeholder = newGroup.querySelector(`#code-placeholder-${idx}`);
-            const dropdown = window.createDiseaseDropdown(event.event);
-            if (dropdown) {
+            if (isSex) {
+                const placeholder = newGroup.querySelector(`#sex-placeholder-${idx}`);
+                const sexSelect = document.createElement('select');
+                sexSelect.className = 'event-sex-select';
+                sexSelect.required = true;
+
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = '';
+                defaultOpt.textContent = '-- Select Sex --';
+                sexSelect.appendChild(defaultOpt);
+
+                const maleOpt = document.createElement('option');
+                maleOpt.value = 'Male';
+                maleOpt.textContent = 'Male';
+                if (event.event === 'Male') maleOpt.selected = true;
+                sexSelect.appendChild(maleOpt);
+
+                const femaleOpt = document.createElement('option');
+                femaleOpt.value = 'Female';
+                femaleOpt.textContent = 'Female';
+                if (event.event === 'Female') femaleOpt.selected = true;
+                sexSelect.appendChild(femaleOpt);
+
                 try {
-                    placeholder.replaceWith(dropdown);
+                    placeholder.replaceWith(sexSelect);
                 } catch (e) {
                     const ageInput = newGroup.querySelector('.event-age');
-                    if (ageInput) ageInput.insertAdjacentElement('afterend', dropdown);
-                    else newGroup.appendChild(dropdown);
+                    if (ageInput) ageInput.insertAdjacentElement('afterend', sexSelect);
+                    else newGroup.appendChild(sexSelect);
+                }
+            } else {
+                const placeholder = newGroup.querySelector(`#code-placeholder-${idx}`);
+                const dropdown = window.createDiseaseDropdown(event.event);
+                if (dropdown) {
+                    try {
+                        placeholder.replaceWith(dropdown);
+                    } catch (e) {
+                        const ageInput = newGroup.querySelector('.event-age');
+                        if (ageInput) ageInput.insertAdjacentElement('afterend', dropdown);
+                        else newGroup.appendChild(dropdown);
+                    }
                 }
             }
 
@@ -164,7 +198,8 @@ async function runDelphiPrediction() {
 
         eventGroups.forEach(group => {
             const ageInput = group.querySelector('.event-age');
-            const codeSelect = group.querySelector('.event-code-select');
+            let codeSelect = group.querySelector('.event-code-select');
+            if (!codeSelect) codeSelect = group.querySelector('.event-sex-select');
 
             const eventAge = ageInput ? parseInt(ageInput.value) : NaN;
             const eventName = codeSelect ? codeSelect.value : '';
