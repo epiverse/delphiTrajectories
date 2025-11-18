@@ -41,10 +41,40 @@
         }
         /* Style for the disease event dropdown */
         .event-code-select {
-             flex-grow: 2; /* Give the dropdown more space */
+             flex-grow: 2;
+        }
+        /* Layout helpers to make disease select expand to the Remove button */
+        .event-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        /* Make the age input and disease select match heights */
+        .event-age {
+            width: 3.25rem; /* thinner age input */
+            flex: 0 0 auto;
+            height: 2rem;
+            padding: 0.25rem 0.5rem;
+            box-sizing: border-box;
+        }
+
+        /* Let the disease select expand to fill available space up to the Remove button */
+        .event-disease, .event-code-select {
+            flex: 1 1 auto;
+            min-width: 160px;
+            height: 2rem;
+            padding: 0 0.5rem;
+            box-sizing: border-box;
+        }
+
+        .remove-btn {
+            margin-left: 0; /* removed auto so it stays at the end of the row */
+            flex: 0 0 auto;
         }
         .remove-btn {
-            margin-left: auto; /* Push the remove button to the right */
+            margin-left: auto;
         }
         .trajectory-table {
             width: 100%;

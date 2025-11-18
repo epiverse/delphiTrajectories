@@ -29,7 +29,8 @@ const rawEventsList = [
 // Create disease dropdown function
 window.createDiseaseDropdown = function(selectedEvent) {
     const select = document.createElement('select');
-    select.className = 'event-code-select';
+    // give disease selects a class that allows them to expand to fill the row
+    select.className = 'event-code-select event-disease';
     select.required = true;
 
     // Add default empty option
@@ -39,7 +40,6 @@ window.createDiseaseDropdown = function(selectedEvent) {
     select.appendChild(defaultOption);
 
     // Prefer SDK vocabulary if available, but also include non-ICD events from the local rawEventsList
-    // Exclude sex tokens from disease dropdown (they are handled separately in the UI)
     let optionsSource = [];
     const localEvents = rawEventsList.map(e => e.event).filter(ev => ev && ev !== 'Male' && ev !== 'Female');
 
@@ -101,12 +101,25 @@ async function initializeForm() {
             const newGroup = document.createElement('div');
             newGroup.className = 'event-input-group bg-gray-50 rounded-lg p-3 shadow-sm';
 
-            newGroup.innerHTML = `
-                <label for="age-${idx}" class="font-medium text-gray-600">Event Age:</label>
-                <input type="number" class="event-age w-1/4" id="age-${idx}" value="${event.age}" min="0" max="120">
-                ${isSex ? `<label for="sex-${idx}" class="font-medium text-gray-600">Sex:</label><span id="sex-placeholder-${idx}"></span>` : `<label for="code-${idx}" class="font-medium text-gray-600">Disease Event:</label><span id="code-placeholder-${idx}"></span>`}
-                ${idx > 0 ? '<button type="button" onclick="this.closest(\'.event-input-group\').remove()" class="remove-btn text-sm text-red-600 hover:text-red-800 transition duration-150">Remove</button>' : ''}
-            `;
+            if (isSex) {
+                // For sex tokens we don't ask for age — do not display age, include hidden age input for internal use
+                newGroup.innerHTML = `
+                    <label class="font-medium text-gray-600">Sex:</label>
+                    <span id="sex-placeholder-${idx}"></span>
+                    <input type="hidden" class="event-age" value="0">
+                    ${idx > 0 ? '<button type="button" onclick="this.closest(\'.event-input-group\').remove()" class="remove-btn text-sm text-red-600 hover:text-red-800 transition duration-150">Remove</button>' : ''}
+                `;
+            } else {
+                newGroup.innerHTML = `
+                    <label for="age-${idx}" class="font-medium text-gray-600">Event Age:</label>
+                    <input type="number" class="event-age" id="age-${idx}" value="${event.age}" min="0" max="120">
+                    <div class="event-row">
+                        <label for="code-${idx}" class="font-medium text-gray-600">Disease Event:</label>
+                        <span id="code-placeholder-${idx}"></span>
+                        ${idx > 0 ? '<button type="button" onclick="this.closest(\'.event-input-group\').remove()" class="remove-btn text-sm text-red-600 hover:text-red-800 transition duration-150">Remove</button>' : ''}
+                    </div>
+                `;
+            }
 
             eventsContainer.appendChild(newGroup);
 
@@ -270,9 +283,18 @@ async function runDelphiPrediction() {
 
             if (token === 0) continue;
 
-            const parts = eventName ? eventName.split(' ') : ['N/A','N/A'];
-            const icdCode = parts[0];
-            const description = parts.slice(1).join(' ');
+            let icdCode = 'N/A';
+            let description = 'N/A';
+            if (eventName) {
+                if (eventName === 'No event') {
+                    icdCode = '-';
+                    description = 'No event';
+                } else {
+                    const parts = eventName.split(' ');
+                    icdCode = parts[0] || 'N/A';
+                    description = parts.slice(1).join(' ') || 'N/A';
+                }
+            }
 
             html += `
                 <tr>
@@ -320,10 +342,12 @@ window.addEventInput = function() {
 
     newGroup.innerHTML = `
         <label for="age-${index}" class="font-medium text-gray-600">Event Age:</label>
-        <input type="number" class="event-age w-1/4" id="age-${index}" value="" min="0" max="120">
-        <label for="code-${index}" class="font-medium text-gray-600">Disease Event:</label>
-        <span id="code-placeholder-${index}"></span>
-        <button type="button" onclick="this.closest('.event-input-group').remove()" class="remove-btn text-sm text-red-600 hover:text-red-800 transition duration-150">Remove</button>
+        <input type="number" class="event-age" id="age-${index}" value="" min="0" max="120">
+        <div class="event-row">
+            <label for="code-${index}" class="font-medium text-gray-600">Disease Event:</label>
+            <span id="code-placeholder-${index}"></span>
+            <button type="button" onclick="this.closest('.event-input-group').remove()" class="remove-btn text-sm text-red-600 hover:text-red-800 transition duration-150">Remove</button>
+        </div>
     `;
 
     eventsContainer.appendChild(newGroup);

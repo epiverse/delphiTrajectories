@@ -58,3 +58,21 @@ button {
   height:25px;
   font-size:1em;
 }
+
+.event-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0rem;
+}
+
+.event-age {
+    width: 1rem; /* thinner age input */
+}
+
+.event-disease {
+    flex: 1 1 auto; /* expand to fill available space up to the Remove button */
+}
+
+.remove-btn {
+    margin-left: 0.5rem;
+}
