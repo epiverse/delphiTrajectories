@@ -289,6 +289,10 @@ async function runDelphiPrediction() {
                 if (eventName === 'No event') {
                     icdCode = '-';
                     description = 'No event';
+                } else if (token === terminationTokenId || eventName === 'Death') {
+                    // Render death/termination token specially
+                    icdCode = '-';
+                    description = 'Death';
                 } else {
                     const parts = eventName.split(' ');
                     icdCode = parts[0] || 'N/A';
@@ -296,12 +300,13 @@ async function runDelphiPrediction() {
                 }
             }
 
+            const isDeath = (token === terminationTokenId || description === 'Death');
             html += `
                 <tr>
                     <td>${stepCounter++}</td>
-                    <td class="${token === terminationTokenId ? 'text-red-600 font-bold' : ''}">${ageYears}</td>
-                    <td class="${token === terminationTokenId ? 'text-red-600 font-bold' : ''}">${icdCode}</td>
-                    <td>${description}</td>
+                    <td class="${isDeath ? 'text-red-600 font-bold' : ''}">${ageYears}</td>
+                    <td class="${isDeath ? 'text-red-600 font-bold' : ''}">${icdCode}</td>
+                    <td class="${isDeath ? 'text-red-600 font-bold' : ''}">${description}</td>
                 </tr>
             `;
 
