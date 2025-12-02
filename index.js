@@ -78,7 +78,7 @@ window.createDiseaseDropdown = function(selectedEvent) {
 async function initializeForm() {
     // Initialize SDK if not already initialized so dropdowns use SDK labels
     if (!sdk) {
-        sdk = new DelphiONNX({ seed: 42 });
+        sdk = new DelphiONNX({ seed: 100 });
         try {
             await sdk.initialize();
             console.debug('initializeForm: SDK initialized');
@@ -195,7 +195,7 @@ async function runDelphiPrediction() {
 
     try {
         if (!sdk) {
-            sdk = new DelphiONNX({ seed: 42 });
+            sdk = new DelphiONNX({ seed: 100 });
             await sdk.initialize();
         }
 
@@ -252,7 +252,7 @@ async function runDelphiPrediction() {
 
         // Run trajectory generation
         const prediction = await sdk.generateTrajectory(tokenHistory, ageHistoryDays, {
-            maxAge: maxAge * NUM_DAYS_IN_A_YEAR + (30 * NUM_DAYS_IN_A_YEAR)
+            maxAge: 85 * NUM_DAYS_IN_A_YEAR
         });
 
         // Render results as a table similar to delphi.js
