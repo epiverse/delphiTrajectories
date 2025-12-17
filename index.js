@@ -238,12 +238,14 @@ async function runDelphiPrediction() {
 
         let tokenHistory, ageHistoryDays;
         try {
-            const startToken = sdk.ageTokenName || sdk.tokenIdToName['1'] || null;
-            if (!startToken) {
-                throw new Error('Starting age token not found in SDK vocabulary.');
-            }
-            tokenHistory = sdk.getTokensFromEvents([startToken, ...icdEvents]);
-            ageHistoryDays = sdk.convertAgeToDays([0, ...eventAges]);
+            // const startToken = sdk.utils.ageTokenName || sdk.utils.tokenIdToName['1'] || null;
+            // if (!startToken) {
+            //     throw new Error('Starting age token not found in SDK vocabulary.');
+            // }
+            // tokenHistory = sdk.getTokensFromEvents([startToken, ...icdEvents]);
+            // ageHistoryDays = sdk.convertAgeToDays([0, ...eventAges]);
+            tokenHistory = sdk.getTokensFromEvents(icdEvents)
+            ageHistoryDays = sdk.getTokensFromEvents(eventAges)
         } catch (e) {
             console.error('Input processing failed:', e);
             resultElement.textContent = `Input Error: ${e.message}. Check console for details.`;
