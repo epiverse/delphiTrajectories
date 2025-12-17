@@ -245,7 +245,7 @@ async function runDelphiPrediction() {
             // tokenHistory = sdk.getTokensFromEvents([startToken, ...icdEvents]);
             // ageHistoryDays = sdk.convertAgeToDays([0, ...eventAges]);
             tokenHistory = sdk.getTokensFromEvents(icdEvents)
-            ageHistoryDays = sdk.getTokensFromEvents(eventAges)
+            ageHistoryDays = sdk.convertAgeToDays(eventAges)
         } catch (e) {
             console.error('Input processing failed:', e);
             resultElement.textContent = `Input Error: ${e.message}. Check console for details.`;
