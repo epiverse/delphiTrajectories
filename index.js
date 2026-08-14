@@ -2,6 +2,33 @@ import DelphiONNX from "https://episphere.github.io/delphi-onnx/delphiSDK.js"
 
 const NUM_DAYS_IN_A_YEAR = 365.25;
 let sdk = null;
+let isModelReady = false;
+let hasAcknowledgedNotice = false;
+
+function updatePredictButtonState() {
+    const predictBtn = document.getElementById('predict-btn');
+    if (predictBtn) predictBtn.disabled = !isModelReady || !hasAcknowledgedNotice;
+}
+
+function acknowledgeResearchNotice() {
+    hasAcknowledgedNotice = true;
+
+    const acknowledgmentButton = document.getElementById('acknowledge-notice-btn');
+    const acknowledgmentHelp = document.getElementById('acknowledgment-help');
+    if (acknowledgmentButton) {
+        acknowledgmentButton.disabled = true;
+        acknowledgmentButton.textContent = 'Research notice acknowledged';
+        acknowledgmentButton.classList.remove('bg-gray-800', 'hover:bg-gray-900');
+        acknowledgmentButton.classList.add('bg-green-700', 'cursor-default');
+    }
+    if (acknowledgmentHelp) {
+        acknowledgmentHelp.textContent = isModelReady
+            ? 'Acknowledged. Get Prediction is now available.'
+            : 'Acknowledged. Get Prediction will become available when the model is ready.';
+    }
+
+    updatePredictButtonState();
+}
 
 // Define your full event list
 const rawEventsList = [
@@ -81,8 +108,10 @@ async function initializeForm() {
         sdk = new DelphiONNX({ seed: 100 });
         try {
             await sdk.initialize();
+            isModelReady = true;
             console.debug('initializeForm: SDK initialized');
         } catch (err) {
+            isModelReady = false;
             console.error('initializeForm: SDK initialization failed', err);
         }
     }
@@ -171,9 +200,16 @@ async function initializeForm() {
         });
 
         // Enable buttons now that inputs exist
-        const predictBtn = document.getElementById('predict-btn');
         const addBtn = document.getElementById('add-btn');
-        if (predictBtn) predictBtn.disabled = false;
+        updatePredictButtonState();
+        if (hasAcknowledgedNotice) {
+            const acknowledgmentHelp = document.getElementById('acknowledgment-help');
+            if (acknowledgmentHelp) {
+                acknowledgmentHelp.textContent = isModelReady
+                    ? 'Acknowledged. Get Prediction is now available.'
+                    : 'Acknowledged, but Get Prediction is unavailable because the model could not be loaded.';
+            }
+        }
         if (addBtn) addBtn.disabled = false;
     }
 }
@@ -193,10 +229,18 @@ async function runDelphiPrediction() {
     const resultElement = document.getElementById('prediction-result');
     if (!resultElement) return;
 
+    if (!hasAcknowledgedNotice) {
+        resultElement.textContent = 'Please acknowledge the research notice before generating a demonstration trajectory.';
+        document.getElementById('acknowledge-notice-btn')?.focus();
+        return;
+    }
+
     try {
         if (!sdk) {
             sdk = new DelphiONNX({ seed: 100 });
             await sdk.initialize();
+            isModelReady = true;
+            updatePredictButtonState();
         }
 
         // SDK is ready: refresh dropdowns to use SDK labels if available
@@ -329,10 +373,17 @@ async function runDelphiPrediction() {
     }
 }
 
-// Initialize form and run prediction when page loads
+// Initialize the form, but do not generate a prediction before acknowledgment.
 document.addEventListener('DOMContentLoaded', async () => {
+    document.getElementById('acknowledge-notice-btn')
+        ?.addEventListener('click', acknowledgeResearchNotice, { once: true });
     await initializeForm();
-    await runDelphiPrediction();
+    const resultElement = document.getElementById('prediction-result');
+    if (resultElement && isModelReady) {
+        resultElement.textContent = 'Model ready. Acknowledge the research notice, then enter or review the history and select Get Prediction.';
+    } else if (resultElement) {
+        resultElement.textContent = 'The model could not be loaded. Please check your internet connection and try again.';
+    }
 });
 
 // Expose functions to global scope so inline handlers in index.html work
